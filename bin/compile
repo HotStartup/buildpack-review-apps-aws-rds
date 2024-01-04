@@ -24,3 +24,5 @@ cat $BUILD_DIR/tmp/buildpack-review-apps-aws-rds-release-step.yml | indent
 
 echo "Copy: 'config/database.reviewapps.yml' -> 'config/database.yml'" | arrow
 cp -v config/database.reviewapps.yml config/database.yml | indent
+
+cp -v Procfile.reviewapps Procfile | indent
