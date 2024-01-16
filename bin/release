@@ -7,4 +7,14 @@ BIN_DIR=$(cd $(dirname $0); pwd)
 
 source "$BIN_DIR/support/functions"
 
-ruby $BIN_DIR/support/merge_yaml $BUILD_DIR/tmp/heroku-buildpack-release-step.yml $BUILD_DIR/tmp/buildpack-review-apps-aws-rds-release-step.yml
+SCRIPT=$BIN_DIR/support/merge_yaml
+MAIN_YML=$BUILD_DIR/tmp/heroku-buildpack-release-step.yml
+RDS_YML=$BUILD_DIR/tmp/buildpack-review-apps-aws-rds-release-step.yml
+
+if [ "$HEROKU_STACK" = "heroku-20" ]; then
+    ruby $SCRIPT $MAIN_YML $RDS_YML
+elif [ "$HEROKU_STACK" = "heroku-22" ]; then
+    bin/ruby $SCRIPT $MAIN_YML $RDS_YML
+else
+    echo "Unknown Heroku stack: $HEROKU_STACK"
+fi
