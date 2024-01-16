@@ -11,10 +11,15 @@ SCRIPT=$BIN_DIR/support/merge_yaml
 MAIN_YML=$BUILD_DIR/tmp/heroku-buildpack-release-step.yml
 RDS_YML=$BUILD_DIR/tmp/buildpack-review-apps-aws-rds-release-step.yml
 
-if [ "$HEROKU_STACK" = "heroku-20" ]; then
-    ruby $SCRIPT $MAIN_YML $RDS_YML
-elif [ "$HEROKU_STACK" = "heroku-22" ]; then
-    bin/ruby $SCRIPT $MAIN_YML $RDS_YML
-else
-    echo "Unknown Heroku stack: $HEROKU_STACK"
-fi
+case "$STACK" in
+    heroku-20)
+        ruby $SCRIPT $MAIN_YML $RDS_YML
+        ;;
+    heroku-22)
+        bin/ruby $SCRIPT $MAIN_YML $RDS_YML
+        ;;
+    *)
+        echo "Unknown Heroku stack: $STACK"
+        exit 1
+        ;;
+esac
