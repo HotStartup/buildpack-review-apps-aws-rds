@@ -34,22 +34,34 @@ cp -v config/database.reviewapps.yml config/database.yml | indent
 # As of Heroku-22, there is no system Ruby installation in the stack image, so if the
 # app doesn't already have the Ruby buildpack set before this one, we have to vendor
 # our own copy of Ruby and ensure it's on PATH at runtime.
+# if ! command -v erb &> /dev/null; then
+#   echo "-----> buildpack: An existing Ruby installation was not found (required for erb template support)"
+#   ruby_version="3.1.2"
+#   ruby_url="https://heroku-buildpack-ruby.s3.us-east-1.amazonaws.com/${STACK}/ruby-${ruby_version}.tgz"
+#   vendored_ruby_dir=".heroku-buildpack-review-apps-aws-rds/ruby"
+#   mkdir -p "${BUILD_DIR}/${vendored_ruby_dir}"
+
+#   if ! curl --silent --show-error --fail --retry 3 --retry-connrefused --connect-timeout 5 "${ruby_url}" | tar -zxC "${BUILD_DIR}/${vendored_ruby_dir}"; then
+#     echo "     ! Failed to download Ruby from '${ruby_url}'" >&2
+#     exit 1
+#   fi
+
+#   mkdir -p "${BUILD_DIR}/.profile.d"
+#   # Deliberately pick the same profile.d script filepath as the Ruby buildpack,
+#   # so if the Ruby buildpack comes after this one, it will overwrite this script.
+#   echo "export PATH=\"\${HOME}/${vendored_ruby_dir}/bin:\${PATH}\"" > "${BUILD_DIR}/.profile.d/ruby.sh"
+
+#   echo "-----> buildpack: Installed Ruby ${ruby_version}"
+# fi
+
 if ! command -v erb &> /dev/null; then
-  echo "-----> buildpack: An existing Ruby installation was not found (required for erb template support)"
-  ruby_version="3.1.2"
-  ruby_url="https://heroku-buildpack-ruby.s3.us-east-1.amazonaws.com/${STACK}/ruby-${ruby_version}.tgz"
-  vendored_ruby_dir=".heroku-buildpack-review-apps-aws-rds/ruby"
-  mkdir -p "${BUILD_DIR}/${vendored_ruby_dir}"
+  # 依存関係のダウンロードと設定
+  YQ_VERSION="4.2.0"
+  YQ_BINARY="yq_linux_amd64"
 
-  if ! curl --silent --show-error --fail --retry 3 --retry-connrefused --connect-timeout 5 "${ruby_url}" | tar -zxC "${BUILD_DIR}/${vendored_ruby_dir}"; then
-    echo "     ! Failed to download Ruby from '${ruby_url}'" >&2
-    exit 1
-  fi
-
-  mkdir -p "${BUILD_DIR}/.profile.d"
-  # Deliberately pick the same profile.d script filepath as the Ruby buildpack,
-  # so if the Ruby buildpack comes after this one, it will overwrite this script.
-  echo "export PATH=\"\${HOME}/${vendored_ruby_dir}/bin:\${PATH}\"" > "${BUILD_DIR}/.profile.d/ruby.sh"
-
-  echo "-----> buildpack: Installed Ruby ${ruby_version}"
+  echo "-----> Installing yq"
+  curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/${YQ_BINARY} -o /tmp/yq
+  chmod +x /tmp/yq
+  mv /tmp/yq /app/.heroku/yq
+  yq -version
 fi
